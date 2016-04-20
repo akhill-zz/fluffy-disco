@@ -277,7 +277,7 @@
 
   - dimension_group: tstamp
     type: time
-    timeframes: [time, date, week, month, hour]
+    timeframes: [time, date, week, month, hour, minute]
     sql: ${TABLE}.tstamp
 
   - dimension: ua_family
