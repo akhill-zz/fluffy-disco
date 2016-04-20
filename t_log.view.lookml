@@ -335,8 +335,15 @@
   - dimension: window_res_w
     type: number
     sql: ${TABLE}.window_res_w
+  
+  - measure: average_log_time
+    type: number
+    sql: avg(${TABLE}.log_time)
 
   - measure: count
     type: count
     drill_fields: [log_filename]
 
+  - measure: stddev_log_time
+    type: number
+    sql: stddev(${TABLE}.log_time)::decimal(10,2)
