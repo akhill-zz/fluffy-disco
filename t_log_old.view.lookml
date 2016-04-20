@@ -1,5 +1,5 @@
-- view: t_log
-  sql_table_name: public.t_log
+- view: t_log_old
+  sql_table_name: public.t_log_old
   fields:
 
   - dimension: adgroup
@@ -9,18 +9,6 @@
   - dimension: anonymous_id
     type: string
     sql: ${TABLE}.anonymous_id
-
-  - dimension: api_url
-    type: string
-    sql: ${TABLE}.api_url
-
-  - dimension: api_url_path
-    type: string
-    sql: ${TABLE}.api_url_path
-
-  - dimension: api_url_search
-    type: string
-    sql: ${TABLE}.api_url_search
 
   - dimension: app_build
     type: string
@@ -73,6 +61,18 @@
   - dimension: event_type
     type: string
     sql: ${TABLE}.event_type
+
+  - dimension: event_url
+    type: string
+    sql: ${TABLE}.event_url
+
+  - dimension: event_url_path
+    type: string
+    sql: ${TABLE}.event_url_path
+
+  - dimension: event_url_search
+    type: string
+    sql: ${TABLE}.event_url_search
 
   - dimension: event_x
     type: number
@@ -210,25 +210,9 @@
     type: string
     sql: ${TABLE}.os_version
 
-  - dimension: page_redirect_url
-    type: string
-    sql: ${TABLE}.page_redirect_url
-
   - dimension: page_title
     type: string
     sql: ${TABLE}.page_title
-
-  - dimension: page_url
-    type: string
-    sql: ${TABLE}.page_url
-
-  - dimension: page_url_path
-    type: string
-    sql: ${TABLE}.page_url_path
-
-  - dimension: page_url_search
-    type: string
-    sql: ${TABLE}.page_url_search
 
   - dimension: product_id
     type: string
