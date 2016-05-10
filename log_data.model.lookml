@@ -3,7 +3,12 @@
 - include: "*.view.lookml"       # include all the views
 - include: "*.dashboard.lookml"  # include all the dashboards
 
+- explore: t_log
+
 - explore: events
-  from: t_log
 
 - explore: requests
+
+- explore: user_id_map
+
+- explore: universal_user_id_map
