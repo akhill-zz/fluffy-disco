@@ -6,8 +6,8 @@
 
   derived_table:
     sql_trigger_value: SELECT DATE_PART('hour', GETDATE()) ## hourly
-    sortkeys: [id, user_id]
-    distkey: id
+    sortkeys: [request_id, user_id]
+    distkey: request_id
 
     sql: |
       SELECT
@@ -17,12 +17,8 @@
           FROM
     
           (SELECT
-            DISTINCT id
-            , CASE 
-                WHEN LEN(FIRST_VALUE("user" IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) = 24 THEN FIRST_VALUE("user" IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
-                WHEN LEN(FIRST_VALUE(user_id IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) = 24 THEN FIRST_VALUE(user_id IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
-                ELSE NULL
-              END AS user_id
+            DISTINCT request_id AS id
+            , user_id
             , CASE
                 WHEN id = '566886a9635a84e4147c1653' THEN '2015-12-09 19:53:00'  /*adjusts for a single giftlist request that never received a timestamp. note, in UTC owing to looker timezone conversion*/
                 ELSE FIRST_VALUE(created::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) 
@@ -55,8 +51,8 @@
             public.t_request
             
           WHERE
-            "user" NOT IN ('565613bc8419178d2bc5122f','5629b91f866fc7d6487ab4b4','5640edf3a44ffe12035ae2a6','5626553b13aab2d12cf4c7b0','562461cbd274fa4c0d14d92b','560fbfa44ac8cd7905a029ad','560eaf5e4ac8cd7905a028e2','55bc027db6c9a9457322b895','559abb739e73fa5631fdf0bc','55a3faf12620a21a0287bf29','559c83b14469543f1b534c3e','5581efab47319b4e70985261','559ac3cb4efd881c2a1de2a1','559c59c9c69c169d08f0dc1b','559e9a315a4668fb1108546e')
-            AND id NOT IN ('570fcaf92bcea4513f631b92','570fcaf92bcea4513f631b89','570fcaf92bcea4513f631b93','570fcaf92bcea4513f631b8e','570fcaf92bcea4513f631b8f','570fcaf92bcea4513f631b8c','570fcaf92bcea4513f631b8d','570fcaf92bcea4513f631b90')
+            user_id NOT IN ('565613bc8419178d2bc5122f','5629b91f866fc7d6487ab4b4','5640edf3a44ffe12035ae2a6','5626553b13aab2d12cf4c7b0','562461cbd274fa4c0d14d92b','560fbfa44ac8cd7905a029ad','560eaf5e4ac8cd7905a028e2','55bc027db6c9a9457322b895','559abb739e73fa5631fdf0bc','55a3faf12620a21a0287bf29','559c83b14469543f1b534c3e','5581efab47319b4e70985261','559ac3cb4efd881c2a1de2a1','559c59c9c69c169d08f0dc1b','559e9a315a4668fb1108546e')
+            AND request_id NOT IN ('570fcaf92bcea4513f631b92','570fcaf92bcea4513f631b89','570fcaf92bcea4513f631b93','570fcaf92bcea4513f631b8e','570fcaf92bcea4513f631b8f','570fcaf92bcea4513f631b8c','570fcaf92bcea4513f631b8d','570fcaf92bcea4513f631b90')
           )
           
           WHERE
