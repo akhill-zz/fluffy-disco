@@ -6,8 +6,8 @@
 
   derived_table:
     sql_trigger_value: SELECT DATE_PART('hour', GETDATE()) ## hourly
-    sortkeys: [request_id, user_id]
-    distkey: request_id
+    sortkeys: [id, user_id]
+    distkey: id
 
     sql: |
       SELECT
@@ -20,32 +20,32 @@
             DISTINCT request_id AS id
             , user_id
             , CASE
-                WHEN id = '566886a9635a84e4147c1653' THEN '2015-12-09 19:53:00'  /*adjusts for a single giftlist request that never received a timestamp. note, in UTC owing to looker timezone conversion*/
-                ELSE FIRST_VALUE(created::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) 
+                WHEN request_id = '566886a9635a84e4147c1653' THEN '2015-12-09 19:53:00'  /*adjusts for a single giftlist request that never received a timestamp. note, in UTC owing to looker timezone conversion*/
+                ELSE FIRST_VALUE(created::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) 
               END AS created
-            , FIRST_VALUE(title IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_title
-            , LAST_VALUE(title IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_title
-            , FIRST_VALUE(description IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_description
-            , LAST_VALUE(description IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_description
-            , LAST_VALUE(modified::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_modified
-            , LAST_VALUE(next_action_date::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_next_action_date
-            , FIRST_VALUE(origin IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS origin
-            , FIRST_VALUE(persona_first_name IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_persona_first_name
-            , FIRST_VALUE(shopper_first_name IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_shopper
-            , LAST_VALUE(shopper_first_name IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_shopper
-            , INITCAP(LAST_VALUE(status IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS current_status
-            , FIRST_VALUE(type IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS category
-            , INITCAP(LAST_VALUE(next_action IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS current_next_action
-            , FIRST_VALUE(priority IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS priority
-            , INITCAP(LAST_VALUE(sort_options_user_customer_score IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS customer_score
-            , LAST_VALUE(notes IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS notes
-            , FIRST_VALUE(ip_country_code IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS ip_address_country_code
-            , LAST_VALUE(COALESCE(experiment_id, experiment) IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_id
-            , LAST_VALUE(experiment_name IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_name
-            , LAST_VALUE(experiment_release IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_release
-            , LOWER(LAST_VALUE(experiment_result IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS experiment_result
-            , ROW_NUMBER() OVER(PARTITION BY id ORDER BY sent_at DESC) AS request_event_index_desc
-            , FIRST_VALUE(ip IGNORE NULLS) OVER (PARTITION BY id ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS ip_address
+            , FIRST_VALUE(title IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_title
+            , LAST_VALUE(title IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_title
+            , FIRST_VALUE(description IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_description
+            , LAST_VALUE(description IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_description
+            , LAST_VALUE(modified::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_modified
+            , LAST_VALUE(next_action_date::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_next_action_date
+            , FIRST_VALUE(origin IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS origin
+            , FIRST_VALUE(persona_id IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_persona_id
+            , FIRST_VALUE(shopper_id IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_shopper_id
+            , LAST_VALUE(shopper_id IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS current_shopper_id
+            , INITCAP(LAST_VALUE(status IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS current_status
+            , FIRST_VALUE(type IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS category
+            , INITCAP(LAST_VALUE(next_action IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS current_next_action
+            , FIRST_VALUE(priority IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS priority
+            , INITCAP(LAST_VALUE(sort_options_user_customer_score IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS customer_score
+            , LAST_VALUE(notes IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS notes
+            , FIRST_VALUE(ip_country_code IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS ip_address_country_code
+            , LAST_VALUE(COALESCE(experiment_id, experiment) IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_id
+            , LAST_VALUE(experiment_name IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_name
+            , LAST_VALUE(experiment_release IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS experiment_release
+            , LOWER(LAST_VALUE(experiment_result IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)) AS experiment_result
+            , ROW_NUMBER() OVER(PARTITION BY id ORDER BY tstamp DESC) AS request_event_index_desc
+            , FIRST_VALUE(ip IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS ip_address
     
           FROM
             public.t_request
@@ -142,13 +142,13 @@
     type: yesno
     sql: ${created_date} > '2016-01-22'
 
-  - dimension: first_persona_first_name
+  - dimension: first_persona_id
     description: 'Persona associated with first chat item customer saw'
 
-  - dimension: first_shopper
+  - dimension: first_shopper_id
     description: 'First shopper assigned to request'
 
-  - dimension: current_shopper
+  - dimension: current_shopper_id
     description: 'Last shopper assigned to request'
 
   - dimension: current_status
@@ -245,7 +245,6 @@
     description: 'Version of experiment'
     sql: |
       CASE
-        WHEN ${TABLE}.experiment_name IS NOT NULL THEN ${TABLE}.experiment_name
         WHEN ${experiment_id} = '57116927050903484ab0335c' THEN 'mothers day v1'
         WHEN ${experiment_id} = '571fb7a8467a42a459070bce' THEN 'mothers day v2'
         WHEN ${experiment_id} = '57236dfb1f583c6861f60f68' THEN 'husbafriend v1'
@@ -254,8 +253,6 @@
         WHEN ${experiment_id} = '572ba8792ff16cf45aa0f6fc' THEN '15-plus'
         ELSE 'unknown'
       END
-
-  - dimension: experiment_release
 
   - dimension: experiment_result
     description: 'Value representing whether/how experiment ran'
