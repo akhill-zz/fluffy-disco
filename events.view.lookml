@@ -20,48 +20,72 @@
 
         (SELECT
           t.event_id
-          , t.event_capture_source AS context_event_capture_source
-          , COALESCE(u.universal_user_id,t.user_id,t.anonymous_id) AS universal_user_id
-          , u.universal_user_id AS universal_user_id_mapped
-          , t.anonymous_id
-          , t.user_id
           , t.tstamp AS original_timestamp
           , t.event AS event
+          , t.log_category
+          , t.event_type
+          , t.event_capture_source AS context_event_capture_source
+          , t.anonymous_id
+          , t.user_id
+          , COALESCE(u.universal_user_id,t.user_id,t.anonymous_id) AS universal_user_id
+          , u.universal_user_id AS universal_user_id_mapped
+          , t.request_id
+          , t.product_id
+          , t.chat_item_id
+          , t.collection_id
+          , t.recommendation_item_id AS recommendation_id
+          , t.order_id
+          , t.browser_id
+          , t.session_id
           , t.page_url_path AS context_page_path
-          , t.referrer AS raw_referrer
-          , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.referrer,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS referrer
+          , t.referrer
+          , t.referrer_domain
           , t.page_url AS raw_event_url
-          , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.page_url,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS event_url
           , t.page_url_search AS event_url_query_string
           , t.useragent
           , t.ip AS ip_address
           , t.app_build AS app_version_build
           , t.app_version
+          , t.origin
           , t.context
           , t.view
-          , t.event_type AS type
+          , t.button_copy
+          , t.link_url
           , t.value_context
           , t.value
           , t.index_set
           , t.index_value
           , t.input_text
-          , t.request_id
-          , t.product_id
-          , t.recommendation_item_id AS recommendation_id
-          , t.button_copy
           , t.utm_medium AS medium
           , t.utm_source AS source
           , t.utm_campaign AS name
           , t.utm_content AS content
           , t.utm_term AS term
           , t.adgroup
+          , t.screen_res_h
+          , t.screen_res_w
+          , t.window_res_h
+          , t.window_res_w
+          , t.event_x
+          , t.event_y
+          , t.device_family
+          , t.os_family
+          , t.os_version
+          , t.ua_family
+          , t.ua_version
+          , t.ip_latitude
+          , t.ip_longitude
+          , t.is_bot
+          , t.is_internal_user
+          , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.page_url,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS event_url
 
         FROM
           public.t_log AS t
           LEFT JOIN ${universal_user_id_map.SQL_TABLE_NAME} u ON u.anonymous_id = t.anonymous_id
 
         WHERE
-          t.event NOT IN ('item', 'collection_published', 'collection_removed', 'waitlist', 'request', 'user', 'product', 'order', 'collection', 'vendor', 'seo')) t
+          t.log_category IN ('EVENT', 'ITEM')
+          AND t.event NOT IN ('item', 'collection_published', 'collection_removed', 'waitlist', 'request', 'user', 'product', 'order', 'collection', 'vendor', 'seo')) t
                       
   fields:
 
@@ -69,10 +93,8 @@
 
   - dimension: event_id
     primary_key: true
-    hidden: 
 
   - dimension: universal_user_id
-    hidden: 
 
   - dimension: universal_user_id_mapped
     description: 'UUID mapped to an anonymous_id'
@@ -96,16 +118,33 @@
     type: number
 
   - dimension: event
-    hidden: true
 
-  - dimension: page_name
+  - dimension: log_category
+
+  - dimension: event_type
+
+  - dimension: request_id
+  
+  - dimension: product_id
+  
+  - dimension: recommendation_id
+  
+  - dimension: chat_item_id
+
+  - dimension: collection_id
+
+  - dimension: order_id
+
+  - dimension: browser_id
+
+  - dimension: session_id
+
+  - dimension: origin
 
   - dimension: context
   
   - dimension: view
   
-  - dimension: type
-
   - dimension: value_context
 
   - dimension: value
@@ -116,18 +155,7 @@
 
   - dimension: input_text
 
-  - dimension: request_id
-  
-  - dimension: product_id
-  
-  - dimension: recommendation_id
-  
   - dimension: button_copy
-    sql: ${TABLE}.context_properties_button_copy
-
-  - dimension: is_app_event
-    type: yesno
-    sql: ${app_version} IS NOT NULL OR ${app_version_build} IS NOT NULL OR (LOWER(${useragent}) LIKE '%iphone%' AND ${useragent} NOT LIKE '%Safari%' AND ${useragent} NOT LIKE '%Chrome%' AND ${useragent} NOT LIKE '%Pinterest%' AND ${useragent} NOT LIKE '%iPad%' AND ${useragent} NOT LIKE '%Twitter for iPhone%' AND ${useragent} NOT LIKE '%Instagram%' AND ${useragent} NOT LIKE '%FBAN%')
 
   - dimension: app_version
   
@@ -141,20 +169,48 @@
     description: 'The URL that immediately preceded the URL this event was recorded on'
     sql: ${TABLE}.referrer
 
+  - dimension: referrer_domain
+
   - dimension: context_page_path
 
   - dimension: raw_referrer
     sql: ${TABLE}.raw_referrer
   
   - dimension: event_url_query_string
-    hidden: true
-
-  - dimension: user_click_waitlist_join_event
-    type: yesno
-    hidden: true
-    sql: ${TABLE}.event = 'user_click_waitlist_join'
 
   - dimension: useragent
+
+  - dimension: device_family
+
+  - dimension: os_family
+
+  - dimension: os_version
+
+  - dimension: ua_family
+
+  - dimension: ua_version
+
+  - dimension: screen_res_h
+
+  - dimension: screen_res_w
+
+  - dimension: window_res_h
+
+  - dimension: window_res_w
+
+  - dimension: event_x
+
+  - dimension: event_y
+
+  - dimension: ip_address
+
+  - dimension: ip_latitude
+  
+  - dimension: ip_longitude
+
+  - dimension: is_bot
+  
+  - dimension: is_internal_user
 
   - dimension: is_internal_ip_address
     type: yesno
@@ -163,9 +219,28 @@
   - dimension: previous_event_name
   
   - dimension: next_event_name
+
+  - dimension: is_app_event
+    type: yesno
+    sql: ${app_version} IS NOT NULL OR ${app_version_build} IS NOT NULL OR (LOWER(${useragent}) LIKE '%iphone%' AND ${useragent} NOT LIKE '%Safari%' AND ${useragent} NOT LIKE '%Chrome%' AND ${useragent} NOT LIKE '%Pinterest%' AND ${useragent} NOT LIKE '%iPad%' AND ${useragent} NOT LIKE '%Twitter for iPhone%' AND ${useragent} NOT LIKE '%Instagram%' AND ${useragent} NOT LIKE '%FBAN%')
+
+
+## Measures ##
   
   - measure: count
     type: count
+    
+  - measure: count_sessions
+    type: count_distinct
+    sql: ${session_id}
+    
+  - measure: count_anonymous_id
+    type: count_distinct
+    sql: ${anonymous_id}
+
+  - measure: count_user_id
+    type: count_distinct
+    sql: ${user_id}
 
 #   - dimension: idfa
 #     
