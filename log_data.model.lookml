@@ -1,8 +1,10 @@
 - connection: marion
+- scoping: true
 
 - include: "*.view.lookml"       # include all the views
 - include: "*.dashboard.lookml"  # include all the dashboards
 
+#-------------------------------------------------------------
 - explore: t_log
 
 - explore: events

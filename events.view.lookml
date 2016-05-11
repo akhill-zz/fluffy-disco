@@ -12,68 +12,56 @@
     sql: |
       SELECT
         *
-        , LAG(event_name, 1 RESPECT NULLS) OVER(PARTITION BY universal_user_id ORDER BY original_timestamp ASC) AS previous_event_name
-        , LEAD(event_name, 1 RESPECT NULLS) OVER(PARTITION BY universal_user_id ORDER BY original_timestamp ASC) AS next_event_name
+        , LAG(event, 1 RESPECT NULLS) OVER(PARTITION BY universal_user_id ORDER BY original_timestamp ASC) AS previous_event_name
+        , LEAD(event, 1 RESPECT NULLS) OVER(PARTITION BY universal_user_id ORDER BY original_timestamp ASC) AS next_event_name
         , DATEDIFF(minutes, LAG(original_timestamp) OVER(PARTITION BY universal_user_id ORDER BY original_timestamp), original_timestamp) AS idle_time_minutes /*calculates the # of minutes since the prior track() or page() event from below UNION*/
 
       FROM
 
-              (SELECT
-                t.event_id
-                , t.event_capture_source AS context_event_capture_source
-                , COALESCE(u.universal_user_id,t.user_id,t.anonymous_id) AS universal_user_id
-                , u.universal_user_id AS universal_user_id_mapped
-                , t.anonymous_id
-                , t.user_id
-                , t.tstamp AS original_timestamp
-                , t.event AS event
-                , t.page_url_path AS context_page_path
-                , t.referrer AS raw_referrer
-                , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.referrer,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS referrer
-                , t.page_url AS raw_event_url
-                , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.page_url,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS event_url
-                , t.page_url_search AS event_url_query_string
-                , t.useragent
-                , t.ip AS ip_address
-                , t.app_build AS app_version_build
-                , t.app_version
-                , t.context
-                , t.view
-                , t.event_type AS type
-                , t.value_context
-                , t.value
-                , t.index_set
-                , t.index_value
-                , t.input_text
-                , t.request_id
-                , t.product_id
-                , t.recommendation_item_id AS recommendation_id
-                , t.button_copy
-                , t.utm_medium AS medium
-                , t.utm_source AS source
-                , t.utm_campaign AS name
-                , t.utm_content AS content
-                , t.utm_term AS term
-                , t.adgroup
-/*                , o.experiment_id
-                , o.experiment_name
-                , o.variation_id
-                , o.variation_name
-                , t.context_device_advertising_id AS idfa
-                , t.context_device_id AS device_id
-                , t.context_properties_input_text_relationship
-*/
-                    
-              FROM
-                public.t_log AS t
-                LEFT JOIN ${universal_user_id_map.SQL_TABLE_NAME} u ON u.anonymous_id = t.anonymous_id
-/*                LEFT JOIN ${optimizely_experiment_events.SQL_TABLE_NAME} o ON o.event_id = t.event_id */
-      
-              WHERE
-                event NOT IN ('item', 'collection_published', 'collection_removed', 'waitlist', 'request', 'user', 'product', 'order', 'collection', 'vendor', 'seo') t /*Excluding specific events that get built out using event-specific tables UNION'd below*/
-      
+        (SELECT
+          t.event_id
+          , t.event_capture_source AS context_event_capture_source
+          , COALESCE(u.universal_user_id,t.user_id,t.anonymous_id) AS universal_user_id
+          , u.universal_user_id AS universal_user_id_mapped
+          , t.anonymous_id
+          , t.user_id
+          , t.tstamp AS original_timestamp
+          , t.event AS event
+          , t.page_url_path AS context_page_path
+          , t.referrer AS raw_referrer
+          , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.referrer,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS referrer
+          , t.page_url AS raw_event_url
+          , REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.page_url,'%3A',':'),'%2F','/'),'%3F','?'),'%26','&'),'%3D','='),'%2A','*'),'%5F','_'),'%5f','_'),'%7B','{'),'%7D','}'),'%20',' ') AS event_url
+          , t.page_url_search AS event_url_query_string
+          , t.useragent
+          , t.ip AS ip_address
+          , t.app_build AS app_version_build
+          , t.app_version
+          , t.context
+          , t.view
+          , t.event_type AS type
+          , t.value_context
+          , t.value
+          , t.index_set
+          , t.index_value
+          , t.input_text
+          , t.request_id
+          , t.product_id
+          , t.recommendation_item_id AS recommendation_id
+          , t.button_copy
+          , t.utm_medium AS medium
+          , t.utm_source AS source
+          , t.utm_campaign AS name
+          , t.utm_content AS content
+          , t.utm_term AS term
+          , t.adgroup
 
-              ) AS e 
+        FROM
+          public.t_log AS t
+          LEFT JOIN ${universal_user_id_map.SQL_TABLE_NAME} u ON u.anonymous_id = t.anonymous_id
+
+        WHERE
+          t.event NOT IN ('item', 'collection_published', 'collection_removed', 'waitlist', 'request', 'user', 'product', 'order', 'collection', 'vendor', 'seo')) t
                       
   fields:
 
@@ -81,10 +69,10 @@
 
   - dimension: event_id
     primary_key: true
-    hidden: true
+    hidden: 
 
   - dimension: universal_user_id
-    hidden: true
+    hidden: 
 
   - dimension: universal_user_id_mapped
     description: 'UUID mapped to an anonymous_id'
@@ -99,10 +87,9 @@
     sql: ${universal_user_id_mapped} IS NULL
 
   - dimension_group: original_timestamp
-    hidden: true
+    hidden:
     type: time
-    timeframes: [time]
-## To enable join of event_facts to events on 3 dimensions...
+    timeframes: [time, date]
 
   - dimension: idle_time_minutes
     description: '# of minutes since the previous event'
@@ -176,19 +163,22 @@
   - dimension: previous_event_name
   
   - dimension: next_event_name
-
-  -- - dimension: idfa
   
-  -- - dimension: device_id
+  - measure: count
+    type: count
 
-  -- - dimension: experiment_name
-
-  -- - dimension: variation_name
-
-  -- - dimension: input_text_relationship
-  --   sql: ${TABLE}.context_properties_input_text_relationship
-
-  -- - measure: count_idfa
-  --   type: count_distinct
-  --   sql: ${idfa}
-  --   drill_fields: detail*
+#   - dimension: idfa
+#     
+#   - dimension: device_id
+#   
+#   - dimension: experiment_name
+#   
+#   - dimension: variation_name
+# 
+#   - dimension: input_text_relationship
+#     sql: ${TABLE}.context_properties_input_text_relationship
+# 
+#   - measure: count_idfa
+#     type: count_distinct
+#     sql: ${idfa}
+#     drill_fields: detail*
