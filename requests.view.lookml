@@ -20,7 +20,7 @@
             DISTINCT request_id AS id
             , user_id
             , CASE
-                WHEN request_id = '566886a9635a84e4147c1653' THEN '2015-12-09 19:53:00'  /*adjusts for a single giftlist request that never received a timestamp. note, in UTC owing to looker timezone conversion*/
+                WHEN request_id = 566886a9635a84e4147c1653 THEN '2015-12-09 19:53:00'  /*adjusts for a single giftlist request that never received a timestamp. note, in UTC owing to looker timezone conversion*/
                 ELSE FIRST_VALUE(created::timestamp IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) 
               END AS created
             , FIRST_VALUE(title IGNORE NULLS) OVER (PARTITION BY id ORDER BY tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_title
